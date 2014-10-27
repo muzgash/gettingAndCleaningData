@@ -37,9 +37,10 @@ requiredFeatures$code<-requiredFeatures[,paste0("V",featnum)]
 
 print("Extracting the means and standard deviations")
 #Extracts only the measurements on the mean and standard deviation for each measurement.
-meanandsd<-data[,c(key(dt), requiredFeatures$code),with=FALSE]
+data<-data[,c(key(data), requiredFeatures$code),with=FALSE]
 
 #Uses descriptive activity names to name the activities in the data set
+print("Puting the names of the activities in apretty way")
 Names <- fread(file.path(pathIn, "activity_labels.txt"))
 setnames(Names, names(Names), c("num", "name"))
 data <- merge(data, Names, by = "num", all.x = TRUE)
@@ -49,26 +50,23 @@ data <- merge(data, requiredFeatures[, list(featnum, code, featname)], by = "cod
 data$activity <- factor(data$name)
 data$feature <- factor(data$featname)
 
-grepthis <- function(regex) {
-    grepl(regex, data$feature)
-	}
-	## Features with 2 categories
-	n <- 2
-	y <- matrix(seq(1, n), nrow = n)
-	x <- matrix(c(grepthis("^t"), grepthis("^f")), ncol = nrow(y))
-	data$featDomain <- factor(x %*% y, labels = c("Time", "Freq"))
-	x <- matrix(c(grepthis("Acc"), grepthis("Gyro")), ncol = nrow(y))
-	data$featInstrument <- factor(x %*% y, labels = c("Accelerometer", "Gyroscope"))
-	x <- matrix(c(grepthis("BodyAcc"), grepthis("GravityAcc")), ncol = nrow(y))
-	data$featAcceleration <- factor(x %*% y, labels = c(NA, "Body", "Gravity"))
-	x <- matrix(c(grepthis("mean()"), grepthis("std()")), ncol = nrow(y))
-	data$featVariable <- factor(x %*% y, labels = c("Mean", "SD"))
-	## Features with 1 category
-	data$featJerk <- factor(grepthis("Jerk"), labels = c(NA, "Jerk"))
-	data$featMagnitude <- factor(grepthis("Mag"), labels = c(NA, "Magnitude"))
-	## Features with 3 categories
-	n <- 3
-	y <- matrix(seq(1, n), nrow = n)
-	x <- matrix(c(grepthis("-X"), grepthis("-Y"), grepthis("-Z")), ncol = nrow(y))
-	data$featAxis <- factor(x %*% y, labels = c(NA, "X", "Y", "Z"))
+y <- matrix(seq(1, 2), nrow = 2)
+x <- matrix(c(grepl("^t",data$feature), grepl("^f",data$feature)), ncol = nrow(y))
+data$featDomain <- factor(x %*% y, labels = c("Time", "Freq"))
+x <- matrix(c(grepl("Acc",data$feature), grepl("Gyro",data$feature)), ncol = nrow(y))
+data$featInst <- factor(x %*% y, labels = c("Accelerometer", "Gyroscope"))
+x <- matrix(c(grepl("BodyAcc",data$feature), grepl("GravityAcc",data$feature)), ncol = nrow(y))
+data$featAcc <- factor(x %*% y, labels = c(NA, "Body", "Gravity"))
+x <- matrix(c(grepl("mean()",data$feature), grepl("std()",data$feature)), ncol = nrow(y))
+data$featVar <- factor(x %*% y, labels = c("mean", "std"))
+data$featJerk <- factor(grepl("Jerk",data$feature), labels = c(NA, "Jerk"))
+data$featMag <- factor(grepl("Mag",data$feature), labels = c(NA, "Magnitude"))
+y <- matrix(seq(1, 3), nrow = 3)
+x <- matrix(c(grepl("-X",data$feature), grepl("-Y",data$feature), grepl("-Z",data$feature)), ncol = nrow(y))
+data$featAxis <- factor(x %*% y, labels = c(NA, "X", "Y", "Z"))
+setkey(data, subject, activity, featDomain, featAcc, featInst, featJerk, featMag, featVar, featAxis)
 
+#Exporting the tidy data
+print("Exporting the tidy data")
+tidyData<-data[, list(count = .N, average = mean(value)), by = key(data)]
+write.table(tidyData,file="tidydata.txt",row.name=FALSE)
