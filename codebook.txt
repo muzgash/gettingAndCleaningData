@@ -1,0 +1,17 @@
+Codebook
+========
+
+Variable    | Description
+-----------------|------------
+tableSubject          | ID the subject who performed the activity for each window sample. Its range is from 1 to 30.
+tableActivity         | Activity
+data			| The whole data with the features described below
+featDomain       | Time or frequency domain signal (Time or Freq)
+featInst   | Measuring instrument (Accelerometer or Gyroscope)
+featAcc | Acceleration signal (Body or Gravity)
+featVar     |  Mean or SD
+featJerk         | Jerk signal
+featMag    | Magnitude of the signals.
+featAxis         | 3-axial signals in the X, Y and Z directions (X, Y, or Z)
+featCount        | Cunt of data points
+featAverage      | Average of each variable for each activity and each subject
